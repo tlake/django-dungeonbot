@@ -1,0 +1,18 @@
+[run]
+omit =
+    dungeonbot/*
+    manage.py
+    */migrations/*
+    roll/apps.py
+
+
+[report]
+omit =
+    dungeonbot/*
+    manage.py
+    */migrations/*
+    roll/apps.py
+
+exclude_lines =
+    pragma: no cover
+    class SavedRollViewSet
