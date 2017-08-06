@@ -19,6 +19,14 @@ class DieRollerViewSet(ViewSet):
     - `/roll/1d20/`
     - `/roll/2d4+2,4d4+4/`
     - `/roll/3*(2d12-4)/`
+
+    Note: For division, use either the pipe character `|` or `%7C`.
+    **Do not use `/`.**
+
+    - `/roll/4d6|2/`
+    - `/roll/4d6%7C2/`
+
+    Also note that usage of division will return floats, not integers.
     """
 
     def list(self, request):
@@ -28,22 +36,29 @@ class DieRollerViewSet(ViewSet):
         request_string = pk
         response = []
 
-        allowed_chars = "1234567890d()*/+-,"
+        allowed_chars = "1234567890d()*|+-,"
+
+        bad_input_msg = (
+            f"Malformed die roll(s): {request_string}"
+            f"\nNote: only the following characters are allowed: {allowed_chars}"
+        )
+        bad_input_response = Response(bad_input_msg, status.HTTP_400_BAD_REQUEST)
+
         if not self._string_is_safe(request_string, allowed_chars):
-            msg = f"Only the following characters are allowed: {allowed_chars}"
-            code = status.HTTP_400_BAD_REQUEST
-            return Response(msg, code)
+            return bad_input_response
 
         roll_strings = request_string.split(",")
 
         for roll_string in roll_strings:
-            processed_string = self._convert_dice_to_values(roll_string)
+            try:
+                processed_string = self._convert_dice_to_values(roll_string)
+            except ValueError:
+                return bad_input_response
+
             try:
                 evaluated_roll = eval(processed_string) if processed_string else None
-            except SyntaxError:
-                msg = f"Malformed die roll(s): {request_string}"
-                code = status.HTTP_400_BAD_REQUEST
-                return Response(msg, code)
+            except (SyntaxError, TypeError):
+                return bad_input_response
 
             response.append(evaluated_roll)
 
@@ -88,12 +103,12 @@ class DieRollerViewSet(ViewSet):
         for source, value in replacements:
             roll_string = roll_string.replace(source, value, 1)
 
-        return roll_string
+        return roll_string.replace("|", "/")
 
 
 class SavedRollViewSet(ViewSet):
-    def get(self, request):
-        return Response("Not yet implemented")
+    def list(self, request):
+        return Response("Not yet implemented", status.HTTP_501_NOT_IMPLEMENTED)
 
-    def post(self, request):
-        return Response("Not yet implemented")
+    def retrieve(self, request):
+        return Response("Not yet implemented", status.HTTP_501_NOT_IMPLEMENTED)
