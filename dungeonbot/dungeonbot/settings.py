@@ -78,11 +78,14 @@ WSGI_APPLICATION = 'dungeonbot.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django-dungeonbot-db',
-        'USER': 'django-dungeonbot',
+        'NAME': 'django_dungeonbot_db',
+        'USER': 'django_dungeonbot',
         'PASSWORD': 'nohaxplz',
         'HOST': 'localhost',
         'PORT': '5432',
+        'TEST': {
+            'NAME': 'test_django_dungeonbot_db',
+        }
     }
 }
 
