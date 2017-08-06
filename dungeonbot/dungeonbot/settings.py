@@ -74,15 +74,23 @@ WSGI_APPLICATION = 'dungeonbot.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+DB_NAME = os.getenv('DJANGO_DUNGEONBOT_DB_NAME', 'django_dungeonbot_db')
+DB_USER = os.getenv('DJANGO_DUNGEONBOT_DB_USER', 'postgres')
+DB_PASS = os.getenv('DJANGO_DUNGEONBOT_DB_PASS')
+DB_HOST = os.getenv('DJANGO_DUNGEONBOT_DB_HOST', 'localhost')
+TEST_DB_NAME = 'test_' + DB_NAME
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django-dungeonbot-db',
-        'USER': 'django-dungeonbot',
-        'PASSWORD': 'nohaxplz',
-        'HOST': 'localhost',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASS,
+        'HOST': DB_HOST,
         'PORT': '5432',
+        'TEST': {
+            'NAME': TEST_DB_NAME,
+        }
     }
 }
 
