@@ -12,4 +12,8 @@ install:
 before_script:
   - psql -c "CREATE DATABASE django_dungeonbot_db;" -U postgres
 
-script: cd dungeonbot && make test
+script:
+  - cd dungeonbot && make test
+
+after_success:
+  - coveralls
