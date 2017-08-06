@@ -3,8 +3,13 @@ language: python
 python:
   - "3.6"
 
-# command to install dependencies
-install: "pip install -r requirements.txt"
+services:
+  - postgresql
 
-# command to run tests
+install:
+  - pip install -r requirements.txt
+
+before_script:
+  - psql -c "CREATE DATABASE django_dungeonbot_db;" -U postgres
+
 script: cd dungeonbot && make test
