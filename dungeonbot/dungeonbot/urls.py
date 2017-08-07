@@ -15,32 +15,18 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.contrib.auth.models import User
-from rest_framework import routers, serializers, viewsets
 
-from roll.views import DieRollerViewSet
+from rest_framework.routers import DefaultRouter
 
-
-# Serializers define the API representation.
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'username', 'email', 'is_staff')
-
-
-# ViewSets define the view behavior.
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+from roll.views import DieRollerViewSet, SavedRollViewSet
 
 
 # Routers provide an easy way of automatically determining the URL conf.
-router = routers.DefaultRouter()
+router = DefaultRouter()
 router.register(r'roll', DieRollerViewSet, base_name='roll')
-router.register(r'users', UserViewSet)
+router.register(r'saved_roll', SavedRollViewSet, base_name='saved_roll')
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include(router.urls)),
-    # url(r'^roll/', include('roll.urls')),
 ]
