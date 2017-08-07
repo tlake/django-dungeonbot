@@ -1,10 +1,15 @@
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ViewSet, ModelViewSet
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from roll.models import SavedRoll
+from roll.serializers import SavedRollSerializer
+
 import json
 from random import randint
+import requests
 
 
 class DieRollerViewSet(ViewSet):
@@ -29,11 +34,13 @@ class DieRollerViewSet(ViewSet):
     Also note that usage of division will return floats, not integers.
     """
 
+    lookup_field = "rolls"
+
     def list(self, request):
         return Response({"sample_roll": reverse("roll-detail", args=['2d4+2'], request=request)})
 
-    def retrieve(self, request, pk):
-        request_string = pk
+    def retrieve(self, request, rolls):
+        request_string = rolls
         response = []
 
         allowed_chars = "1234567890d()*|+-,"
@@ -106,9 +113,61 @@ class DieRollerViewSet(ViewSet):
         return roll_string.replace("|", "/")
 
 
-class SavedRollViewSet(ViewSet):
-    def list(self, request):
-        return Response("Not yet implemented", status.HTTP_501_NOT_IMPLEMENTED)
+class SavedRollViewSet(ModelViewSet):
+    """
+    #### `/saved_roll/`
+    - **GET**:
+    List all saved rolls.
 
-    def retrieve(self, request):
-        return Response("Not yet implemented", status.HTTP_501_NOT_IMPLEMENTED)
+    - **POST**:
+    Idempotent create-or-update operation.
+
+    #### `/saved_roll/?{query}/`
+    - **GET**:
+    List all saved rolls that match the `{query}`.
+    Available query params (may be joined with `&`):
+        - `group=`
+        - `user=`
+        - `name=`
+
+    #### `/saved_roll/{pk}/`
+    - **GET**:
+    Describe the saved roll with primary key `{pk}`.
+
+    - **DELETE**:
+    Delete the saved roll with primary key `{pk}`.
+
+    #### `/saved_roll/{pk}/calc/`
+    - **GET**:
+    Calculate the saved roll with primary key `{pk}`.
+    """
+
+    queryset = SavedRoll.objects.all()
+    serializer_class = SavedRollSerializer
+    filter_fields = ["group", "user", "name"]
+
+    def create(self, request):
+        try:
+            instance = SavedRoll.objects.get(
+                group=request.data['group'],
+                user=request.data['user'],
+                name=request.data['name'],
+            )
+            serializer = SavedRollSerializer(instance=instance, data=request.data)
+            if serializer.is_valid():
+                saved_roll = serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except SavedRoll.DoesNotExist:
+            serializer = SavedRollSerializer(data=request.data)
+        if serializer.is_valid():
+            saved_roll = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['get'])
+    def calc(self, request, pk):
+        instance = SavedRoll.objects.get(id=pk)
+        content = instance.content
+        resp = requests.get(reverse("roll-detail", args=[content], request=request))
+        return Response(json.loads(resp.content), status=status.HTTP_200_OK)
