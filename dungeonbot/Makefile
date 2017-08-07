@@ -1,9 +1,12 @@
-test:
+migrate:
+	./manage.py makemigrations && ./manage.py migrate
+
+test: migrate
 	coverage run --source='.' manage.py test
 	coverage report -m
 
-verbose-test:
+verbose-test: migrate
 	coverage run --source='.' manage.py test -v 3
 	coverage report -m
 
-.PHONY: test
+.PHONY: migrate test verbose-test
