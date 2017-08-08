@@ -1,5 +1,7 @@
 __pycache__
 *.pyc
 *.swp
+*.swo
 .ropeproject
 .coverage
+SECRETS
