@@ -15,4 +15,3 @@ omit =
 
 exclude_lines =
     pragma: no cover
-    class SavedRollViewSet
