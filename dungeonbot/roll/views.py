@@ -157,7 +157,8 @@ class SavedRollViewSet(ModelViewSet):
             if serializer.is_valid():
                 saved_roll = serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # not sure how to hit the following line:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # pragma: no cover
         except SavedRoll.DoesNotExist:
             serializer = SavedRollSerializer(data=request.data)
         if serializer.is_valid():
@@ -169,5 +170,11 @@ class SavedRollViewSet(ModelViewSet):
     def calc(self, request, pk):
         instance = SavedRoll.objects.get(id=pk)
         content = instance.content
-        resp = requests.get(reverse("roll-detail", args=[content], request=request))
-        return Response(json.loads(resp.content), status=status.HTTP_200_OK)
+
+        roller = DieRollerViewSet()
+        resp = roller.retrieve(request, content)
+
+        if resp.status_code != 200:
+            return Response(resp.status_text, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(json.loads(resp.data), status=status.HTTP_200_OK)
